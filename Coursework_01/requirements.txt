@@ -1,4 +1,0 @@
-ghostscript
-pyscreenshot
-Pillow
-gymnasium
