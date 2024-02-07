@@ -53,11 +53,15 @@ class DijkstraPlanner(PlannerBase):
         return self.priority_queue.get()[1]
 
 
+    def has_goal_been_reached(self, cell) -> bool:
+        return False
+
+
     def resolve_duplicate(self, cell: SearchGridCell, parent_cell: SearchGridCell):
         px, py = parent_cell.coords()
         x, y = cell.coords()
 
-        tentative = self.cumulative_distances[py][px] + ((x - px)**2 + (y - py)**2)**0.5
+        tentative = self.cumulative_distances[py][px] + sqrt((x - px)**2 + (y - py)**2)
 
         if tentative < self.cumulative_distances[y][x]:
             self.cumulative_distances[y][x] = tentative
