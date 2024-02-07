@@ -36,6 +36,14 @@ class HighLevelEnvironment(gymnasium.Env):
         
         # Store the map
         self._airport_map = airport_map
+
+        # store planner type
+        self.queue_type = ""
+        if (planner_type == PlannerType.DEPTH_FIRST):
+                self.queue_type = "lifoQueue"
+        if (planner_type == PlannerType.BREADTH_FIRST):
+                self.queue_type = "fifoQueue"
+        self.max_nodes_stored = 0
         
         # Create the planner which will be used to simulate the robot's travel
         planner_factory = {
@@ -75,6 +83,7 @@ class HighLevelEnvironment(gymnasium.Env):
         # do so instantly at no cost. If the robot  can't be 
         # transported to the new cell, return a reward of -infinity
         # and leave the robot as-is.
+
         if action[0] == HighLevelActionType.TELEPORT_ROBOT_TO_NEW_POSITION:
             new_coords = action[1]
             if self._airport_map.is_obstruction(new_coords[0], new_coords[1]):
@@ -94,6 +103,8 @@ class HighLevelEnvironment(gymnasium.Env):
             plan = self._planner.extract_path_to_goal()
             print(f'plan.path_travel_cost={plan.path_travel_cost}')
             print(f'plan.goal_reached={plan.goal_reached}')
+            print(f'number of nodes searched: {getattr(self._planner, "searchCount")}')
+            print(f'max number of nodes stored in memory: {getattr(self._planner, "maxNodesStored")}')
             if plan.goal_reached is True:
                 self._current_coords = goal_coords
                 return self._current_coords, -plan.path_travel_cost, False, plan

@@ -13,10 +13,16 @@ class DepthFirstPlanner(PlannerBase):
     def __init__(self, occupancyGrid: OccupancyGrid):
         PlannerBase.__init__(self, occupancyGrid)
         self.lifoQueue: List[SearchGridCell] = list()
+        self.searchCount = 0
+        self.maxNodesStored = 0
 
     # Simply put on the end of the queue
     def push_cell_onto_queue(self, cell: SearchGridCell):
         self.lifoQueue.append(cell)
+        self.searchCount += 1
+        node_len = len(self.lifoQueue)
+        if node_len > self.maxNodesStored:
+            self.maxNodesStored = node_len
 
     # Check the queue size is zero
     def is_queue_empty(self) -> bool:

@@ -16,10 +16,17 @@ class BreadthFirstPlanner(PlannerBase):
     def __init__(self, occupancyGrid: OccupancyGrid):
         PlannerBase.__init__(self, occupancyGrid)
         self.fifoQueue = deque()  # type: ignore
+        self.searchCount = 0
+        self.maxNodesStored = 0
 
     # Simply put on the end of the queue
     def push_cell_onto_queue(self, cell: SearchGridCell):
+
         self.fifoQueue.append(cell)
+        self.searchCount += 1
+        node_len = len(self.fifoQueue)
+        if node_len > self.maxNodesStored:
+            self.maxNodesStored = node_len
 
     # Check the queue size is zero
     def is_queue_empty(self) -> bool:
