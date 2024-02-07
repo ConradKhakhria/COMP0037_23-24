@@ -22,6 +22,9 @@ class DijkstraPlanner(PlannerBase):
         PlannerBase.__init__(self, occupancy_grid)
         self.priority_queue = PriorityQueue()  # type: ignore
         self.cumulative_distances = []
+
+        self.searchCount = 0
+        self.maxNodesStored = 0
     
         for _ in range(occupancy_grid.height()):
             self.cumulative_distances.append([float("inf")]*occupancy_grid.width())
@@ -30,8 +33,14 @@ class DijkstraPlanner(PlannerBase):
     def push_cell_onto_queue(self, cell: SearchGridCell):
         x, y = cell.coords()
 
+        self.searchCount += 1
+
         if cell.is_start:
             self.cumulative_distances[y][x] = 0
+
+        node_len = self.priority_queue.qsize()
+        if node_len > self.maxNodesStored:
+            self.maxNodesStored = node_len
 
         self.priority_queue.put((self.cumulative_distances[y][x], cell))
 
