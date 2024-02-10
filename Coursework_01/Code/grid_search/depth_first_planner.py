@@ -15,11 +15,22 @@ class DepthFirstPlanner(PlannerBase):
         self.lifoQueue: List[SearchGridCell] = list()
         self.searchCount = 0
         self.maxNodesStored = 0
+        self.totalNodesStored = 0
+        self.avgNodesStored = 0
+
+    def reset_statistics(self):
+        self.searchCount = 0
+        self.maxNodesStored = 0
+        self.totalNodesStored = 0
+        self.avgNodesStored = 0
 
     # Simply put on the end of the queue
     def push_cell_onto_queue(self, cell: SearchGridCell):
         self.lifoQueue.append(cell)
         self.searchCount += 1
+        self.totalNodesStored += len(self.lifoQueue)
+        self.avgNodesStored = self.totalNodesStored/self.searchCount
+
         node_len = len(self.lifoQueue)
         if node_len > self.maxNodesStored:
             self.maxNodesStored = node_len
