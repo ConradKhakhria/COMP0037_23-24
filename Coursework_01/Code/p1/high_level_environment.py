@@ -7,6 +7,7 @@ Created on 25 Jan 2022
 from enum import Enum
 
 import gymnasium
+import time
 
 # Import the planners
 from grid_search.a_star_planner import AStarPlanner
@@ -98,9 +99,13 @@ class HighLevelEnvironment(gymnasium.Env):
         # (because we want to maximise reward and minimize the path length).
         # If the goal can't be reached, the reward is minus infinity
         if action[0] == HighLevelActionType.DRIVE_ROBOT_TO_NEW_POSITION:
+            startTime = time.time()
             goal_coords = action[1]
             self._planner.plan(self._current_coords, goal_coords)
             plan = self._planner.extract_path_to_goal()
+            endTime = time.time()
+
+            duration = endTime - startTime
 
             print(f'(1) plan.path_travel_cost={plan.path_travel_cost}')
             print(f'plan.goal_reached={plan.goal_reached}')
@@ -108,6 +113,7 @@ class HighLevelEnvironment(gymnasium.Env):
             print(f'(3) The maximum number of nodes stored in the queue at any point: {getattr(self._planner, "maxNodesStored")}')
             print(f'(4) The total number of nodes stored in the queue: {getattr(self._planner, "totalNodesStored")}')
             print(f'(5) The average number of nodes stored in the queue: {getattr(self._planner, "avgNodesStored")}')
+            print(f'(6) The execution time taken to find the path: {duration}')
 
             self._planner.reset_statistics()
 
