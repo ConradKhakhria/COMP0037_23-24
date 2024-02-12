@@ -5,10 +5,13 @@ Created on 29 Jan 2022
 '''
 
 from .dynamic_programming_base import DynamicProgrammingBase
+from p2.low_level_actions import LowLevelActionType
+
 
 # This class ipmlements the value iteration algorithm
 
 class ValueIterator(DynamicProgrammingBase):
+    total_steps = 0
 
     def __init__(self, environment):
         DynamicProgrammingBase.__init__(self, environment)
@@ -23,7 +26,7 @@ class ValueIterator(DynamicProgrammingBase):
 
     #    
     def solve_policy(self):
-
+        ValueIterator.total_steps = 0
         # Initialize the drawers
         if self._policy_drawer is not None:
             self._policy_drawer.update()
@@ -53,11 +56,82 @@ class ValueIterator(DynamicProgrammingBase):
         # This method returns no value.
         # The method updates self._pi
 
-        raise NotImplementedError()
+        environment = self._environment
+        map = environment.map()
+        print("theta:", self._theta)
+
+        iteration = 0
+
+        while True:
+            
+            delta = 0
+
+            # Sweep systematically over all the states            
+            for x in range(map.width()):
+                for y in range(map.height()):
+                    if map.cell(x, y).is_obstruction() or map.cell(x, y).is_terminal():
+                        continue
+
+                    old_v = self._v.value(x, y)
+                    best_v = -float('inf')
+                    
+                    for action_num in range(LowLevelActionType.NUMBER_OF_ACTIONS-2):
+                        action = LowLevelActionType(action_num)
+                        s_prime, r, p = environment.next_state_and_reward_distribution((x, y), action)
+
+                        # Sum over the rewards
+                        new_v = 0
+                        for t in range(len(p)):
+                            sc = s_prime[t].coords()
+                            new_v = new_v + p[t] * (r[t] + self._gamma * self._v.value(sc[0], sc[1]))
+
+                        best_v = max(best_v, new_v)
+
+                    self._v.set_value(x, y, best_v)
+
+                    delta = max(delta, abs(old_v-best_v))
+
+            # print(delta, iteration)
+            if delta < self._theta:
+                break
+
+            iteration += 1
+            ValueIterator.total_steps += 1
+
+            if iteration >= self._max_optimal_value_function_iterations:
+                print('Maximum number of iterations exceeded')
+                break
+                    
+
 
     def _extract_policy(self):
 
         # This method returns no value.
         # The policy is in self._pi
 
-        raise NotImplementedError()
+        environment = self._environment
+        map = environment.map()
+            
+        for x in range(map.width()):
+            for y in range(map.height()):
+                if map.cell(x, y).is_obstruction() or map.cell(x, y).is_terminal():
+                    continue
+
+                best_action = None
+                best_v = -float('inf')
+                
+                for action_num in range(LowLevelActionType.NUMBER_OF_ACTIONS):
+                    action = LowLevelActionType(action_num)
+                    s_prime, r, p = environment.next_state_and_reward_distribution((x, y), action)
+
+                    # Sum over the rewards
+                    new_v = 0
+                    for t in range(len(p)):
+                        sc = s_prime[t].coords()
+                        new_v = new_v + p[t] * (r[t] + self._gamma * self._v.value(sc[0], sc[1]))
+
+                    if best_v < new_v:
+                        best_v = new_v
+                        best_action = action
+
+                self._pi.set_action(x, y, best_action)

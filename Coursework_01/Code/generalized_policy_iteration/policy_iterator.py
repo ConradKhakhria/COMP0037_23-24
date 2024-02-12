@@ -9,9 +9,14 @@ Created on 29 Jan 2022
 import copy
 
 from .dynamic_programming_base import DynamicProgrammingBase
+from p2.low_level_actions import LowLevelActionType
+
 
 
 class PolicyIterator(DynamicProgrammingBase):
+    deltas = []
+    step_snapshots = []
+    total_steps = 0
 
     def __init__(self, environment):
         DynamicProgrammingBase.__init__(self, environment)
@@ -37,6 +42,7 @@ class PolicyIterator(DynamicProgrammingBase):
         return self._v
         
     def solve_policy(self):
+        PolicyIterator.total_steps = 0
                             
         # Initialize the drawers if defined
         if self._policy_drawer is not None:
@@ -52,12 +58,12 @@ class PolicyIterator(DynamicProgrammingBase):
         # Loop until either the policy converges or we ran out of steps        
         while (policy_stable is False) and \
             (policy_iteration_step < self._max_policy_iteration_steps):
-            
             # Evaluate the policy
             self._evaluate_policy()
 
             # Improve the policy            
             policy_stable = self._improve_policy()
+
             
             # Update the drawers if needed
             if self._policy_drawer is not None:
@@ -68,6 +74,7 @@ class PolicyIterator(DynamicProgrammingBase):
                 
             policy_iteration_step += 1
 
+
         # Draw one last time to clear any transients which might
         # draw changes
         if self._policy_drawer is not None:
@@ -75,7 +82,6 @@ class PolicyIterator(DynamicProgrammingBase):
             
         if self._value_drawer is not None:
             self._value_drawer.update()
-
         # Return the value function and policy of the solution
         return self._v, self._pi
 
@@ -132,10 +138,12 @@ class PolicyIterator(DynamicProgrammingBase):
  
             # Increment the policy evaluation counter        
             iteration += 1
+            PolicyIterator.total_steps += 1
                        
-            print(f'Finished policy evaluation iteration {iteration}')
-            
             # Terminate the loop if the change was very small
+            self.deltas.append(delta)
+            self.step_snapshots.append(PolicyIterator.total_steps)
+            # print(delta)
             if delta < self._theta:
                 break
                 
@@ -144,6 +152,7 @@ class PolicyIterator(DynamicProgrammingBase):
             if iteration >= self._max_policy_evaluation_steps_per_iteration:
                 print('Maximum number of iterations exceeded')
                 break
+
 
     def _improve_policy(self) -> bool:
 
@@ -156,6 +165,40 @@ class PolicyIterator(DynamicProgrammingBase):
         map = environment.map()
 
         policy_stable = True
+
+        # Iterate through all states            
+        for x in range(map.width()):
+            for y in range(map.height()):
+
+                # If terminal cell, skip
+                if map.cell(x, y).is_obstruction() or map.cell(x, y).is_terminal():
+                        continue
+                
+                old_action = self._pi.action(x, y)
+                new_action = old_action
+                old_v = self._v.value(x, y)
+
+                # iterate through all actions
+                for action in range(LowLevelActionType.NUMBER_OF_ACTIONS):
+                    if action in [LowLevelActionType.NONE, LowLevelActionType.TERMINATE]:
+                        continue
+                    s_prime, r, p = environment.next_state_and_reward_distribution((x, y), action)
+
+                    # Sum over the rewards
+                    new_v = 0
+                    for t in range(len(p)):
+                        sc = s_prime[t].coords()
+                        new_v = new_v + p[t] * (r[t] + self._gamma * self._v.value(sc[0], sc[1]))
+
+                    if new_v > old_v:
+                        old_v = new_v
+                        new_action = action
+
+                self._pi.set_action(x, y, new_action)
+
+
+                if new_action != old_action:
+                    policy_stable = False
 
         # Return true if the policy is stable (=isn't changing)     
         return policy_stable
