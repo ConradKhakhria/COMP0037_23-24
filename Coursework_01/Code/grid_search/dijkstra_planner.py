@@ -25,6 +25,14 @@ class DijkstraPlanner(PlannerBase):
         self.searchCount = 0
         self.maxNodesStored = 0
         self.start_added_to_queue = False
+        self.totalNodesStored = 0
+        self.avgNodesStored = 0
+
+    def reset_statistics(self):
+        self.searchCount = 0
+        self.maxNodesStored = 0
+        self.totalNodesStored = 0
+        self.avgNodesStored = 0
 
 
     def push_cell_onto_queue(self, cell: SearchGridCell):
@@ -38,6 +46,8 @@ class DijkstraPlanner(PlannerBase):
 
         self.priority_queue.put((cell.path_cost, cell))
         self.searchCount += 1
+        self.totalNodesStored += self.priority_queue.qsize()
+        self.avgNodesStored = self.totalNodesStored/self.searchCount
 
 
     def is_queue_empty(self) -> bool:

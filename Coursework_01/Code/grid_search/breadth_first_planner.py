@@ -18,12 +18,23 @@ class BreadthFirstPlanner(PlannerBase):
         self.fifoQueue = deque()  # type: ignore
         self.searchCount = 0
         self.maxNodesStored = 0
+        self.totalNodesStored = 0
+        self.avgNodesStored = 0
+
+    def reset_statistics(self):
+        self.searchCount = 0
+        self.maxNodesStored = 0
+        self.totalNodesStored = 0
+        self.avgNodesStored = 0
 
     # Simply put on the end of the queue
     def push_cell_onto_queue(self, cell: SearchGridCell):
 
         self.fifoQueue.append(cell)
         self.searchCount += 1
+        self.totalNodesStored += len(self.fifoQueue)
+        self.avgNodesStored = self.totalNodesStored/self.searchCount
+
         node_len = len(self.fifoQueue)
         if node_len > self.maxNodesStored:
             self.maxNodesStored = node_len

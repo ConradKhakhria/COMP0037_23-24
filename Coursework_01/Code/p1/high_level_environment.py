@@ -77,7 +77,7 @@ class HighLevelEnvironment(gymnasium.Env):
     
     def show_verbose_graphics(self, verbose_graphics):
         self._planner.update_graphics_each_iteration(verbose_graphics)
-    
+
     def step(self, action):        
         # If the action is to teleport the robot to a new location,
         # do so instantly at no cost. If the robot  can't be 
@@ -101,10 +101,16 @@ class HighLevelEnvironment(gymnasium.Env):
             goal_coords = action[1]
             self._planner.plan(self._current_coords, goal_coords)
             plan = self._planner.extract_path_to_goal()
-            print(f'plan.path_travel_cost={plan.path_travel_cost}')
+
+            print(f'(1) plan.path_travel_cost={plan.path_travel_cost}')
             print(f'plan.goal_reached={plan.goal_reached}')
-            print(f'number of nodes searched: {getattr(self._planner, "searchCount")}')
-            print(f'max number of nodes stored in memory: {getattr(self._planner, "maxNodesStored")}')
+            print(f'(2) The total number of nodes searched: {getattr(self._planner, "searchCount")}')
+            print(f'(3) The maximum number of nodes stored in the queue at any point: {getattr(self._planner, "maxNodesStored")}')
+            print(f'(4) The total number of nodes stored in the queue: {getattr(self._planner, "totalNodesStored")}')
+            print(f'(5) The average number of nodes stored in the queue: {getattr(self._planner, "avgNodesStored")}')
+
+            self._planner.reset_statistics()
+
             if plan.goal_reached is True:
                 self._current_coords = goal_coords
                 return self._current_coords, -plan.path_travel_cost, False, plan
