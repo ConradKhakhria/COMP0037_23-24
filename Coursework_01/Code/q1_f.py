@@ -49,10 +49,17 @@ if __name__ == '__main__':
     # Q1f:
     # Modify to collect statistics for assessing algorithms
     # Now go through them and plan a path sequentially
+
+    bin_number = 1
+
     for rubbish_bin in all_rubbish_bins:
             action = (HighLevelActionType.DRIVE_ROBOT_TO_NEW_POSITION, rubbish_bin.coords())
             observation, reward, done, info = airport_environment.step(action)
     
+            screen_shot_name = f'bin_{bin_number:02}.pdf'
+            airport_environment.search_grid_drawer().save_screenshot(screen_shot_name)
+            bin_number += 1
+
             try:
                 input("Press enter in the command window to continue.....")
             except SyntaxError:
