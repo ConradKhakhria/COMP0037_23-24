@@ -23,30 +23,29 @@ if __name__ == '__main__':
     
     # Q3d:
     # Configure the process model using different probabilities
-    airport_environment.set_nominal_direction_probability(1)
 
-    # Note that you can create multiple instances of the same object, with different
-    # settings, and run them in the same programme. Therefore, you do not need to
-    # create lots of separate scripts to run the code.
+    for p in [1.0, 0.9, 0.6, 0.3]:
+        airport_environment.set_nominal_direction_probability(p)
+        policy_solver = PolicyIterator(airport_environment)
+        policy_solver.set_max_policy_evaluation_steps_per_iteration(5)
+        policy_solver.set_gamma(0.99)
 
-    # Create the policy iterator
-    policy_solver = PolicyIterator(airport_environment)
-
-    # Set up initial state
-    policy_solver.initialize()
+        # Set up initial state
+        policy_solver.initialize()
         
-    # Bind the drawer with the solver
-    policy_drawer = LowLevelPolicyDrawer(policy_solver.policy(), drawer_height)
-    policy_solver.set_policy_drawer(policy_drawer)
-    
-    value_function_drawer = ValueFunctionDrawer(policy_solver.value_function(), drawer_height)
-    policy_solver.set_value_function_drawer(value_function_drawer)
+        # Bind the drawer with the solver
+        policy_drawer = LowLevelPolicyDrawer(policy_solver.policy(), drawer_height)
+        policy_solver.set_policy_drawer(policy_drawer)
         
-    # Compute the solution
-    v, pi = policy_solver.solve_policy()
-    
-    # Save screen shot; this is in the current directory
-    policy_drawer.save_screenshot("policy_iteration_results.jpg")
-    
-    # Wait for a key press
-    value_function_drawer.wait_for_key_press()
+        value_function_drawer = ValueFunctionDrawer(policy_solver.value_function(), drawer_height)
+        policy_solver.set_value_function_drawer(value_function_drawer)
+        
+        # Compute the solution
+        v, pi = policy_solver.solve_policy()
+        
+        # Save screen shot; this is in the current directory
+        policy_drawer.save_screenshot(f"plots/q3_d_policy_iteration_policy_{p}.jpg")
+        policy_drawer.save_screenshot(f"plots/q3_d_policy_iteration_policy_{p}.pdf")
+
+        value_function_drawer.save_screenshot(f"plots/q3_d_policy_iteration_value_{p}.jpg")
+        value_function_drawer.save_screenshot(f"plots/q3_d_policy_iteration_value_{p}.pdf")

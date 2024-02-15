@@ -142,7 +142,7 @@ class LowLevelEnvironment(Env):
             idx = a + i
             
             if idx > 7:
-                idx =- 3
+                idx = 0
             
             # Get the offset for the specified direction
             delta = self._driving_deltas[idx]            
